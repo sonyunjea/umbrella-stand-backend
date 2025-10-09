@@ -1,21 +1,24 @@
-//수정됐는지 코드 한줄 넣음
+//server.js
+
+// After (수정 후)
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 
-// 기기 상태 저장
+// 기기 상태 저장 (fan_speed 추가)
 let deviceState = {
   fan: 'OFF',
+  fan_speed: 1, // 👈 팬 속도 상태 추가!
   uvc: 'OFF',
   led: {
     color: '#ffffff',
     isOn: false,
   },
-  waterLevel: 0, // 초기값 0으로 변경 (80이면 항상 경고 표시)
+  waterLevel: 0,
 };
 
 // [GET] 기기 상태 조회
@@ -24,18 +27,20 @@ app.get('/api/device/status', (req, res) => {
   res.json(deviceState);
 });
 
-// [POST] 기기 제어
+// [POST] 기기 제어 (fan_speed 처리 로직 추가)
 app.post('/api/device/control', (req, res) => {
   console.log('📥 POST /api/device/control:', req.body);
   const { target, value } = req.body;
 
   if (target === 'fan') {
     deviceState.fan = value;
+  } else if (target === 'fan_speed') { // 👈 팬 속도 변경 주문 처리!
+    deviceState.fan_speed = value;
   } else if (target === 'uvc') {
     deviceState.uvc = value;
   } else if (target === 'led') {
     deviceState.led = value;
-  } else if (target === 'water_level') { // ⚠️ 언더스코어 사용!
+  } else if (target === 'water_level') {
     deviceState.waterLevel = value;
   }
 
